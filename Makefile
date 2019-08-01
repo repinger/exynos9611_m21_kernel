@@ -1055,6 +1055,10 @@ ifeq ($(CONFIG_STRIP_ASM_SYMS),y)
 LDFLAGS_vmlinux	+= $(call ld-option, -X,)
 endif
 
+ifeq ($(CONFIG_RELR),y)
+LDFLAGS_vmlinux	+= --pack-dyn-relocs=relr
+endif
+
 # FINGERPRINT
 USE_SECGETSPF := $(shell echo "\$(PATH)")
 ifneq ($(findstring buildscript/build_common/core/bin, $(USE_SECGETSPF)),)
