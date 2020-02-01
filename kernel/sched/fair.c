@@ -34,6 +34,7 @@
 #include <linux/migrate.h>
 #include <linux/task_work.h>
 #include <linux/ems.h>
+#include <linux/module.h>
 
 #include <trace/events/sched.h>
 
