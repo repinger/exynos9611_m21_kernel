@@ -131,7 +131,11 @@ kernel/configs/android-*.cfg
 *.reverse.dts
 __pycache__/
 *.pyc
-
+scripts/crypto/__pycache__/
+scripts/fmp/__pycache__/
 
 # Object directory
 out/
+
+# log
+log.txt
