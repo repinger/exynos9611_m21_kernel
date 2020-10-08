@@ -93,6 +93,7 @@
 #include <linux/cpufreq_times.h>
 #include <linux/devfreq_boost.h>
 #include <linux/kprofiles.h>
+#include <linux/ems_service.h>
 
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
@@ -2124,12 +2125,17 @@ long _do_fork(unsigned long clone_flags,
 	      int __user *child_tidptr,
 	      unsigned long tls)
 {
+	static struct kpp kpp_fg;
+	static struct kpp kpp_ta;
 	struct task_struct *p;
 	int trace = 0;
 	long nr;
 
 	/* Boost DDR bus to the max for 50 ms when userspace launches an app */
 	if (task_is_zygote(current)) {
+		kpp_request(STUNE_TOPAPP, &kpp_ta, 1);
+		kpp_request(STUNE_FOREGROUND, &kpp_fg, 1);
+
 		switch (active_mode()) {
 		case 2:
 		case 3:
