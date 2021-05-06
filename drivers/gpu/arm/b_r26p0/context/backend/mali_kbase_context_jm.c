@@ -36,7 +36,7 @@
 #include <mmu/mali_kbase_mmu.h>
 #include <tl/mali_kbase_timeline.h>
 
-#ifdef CONFIG_DEBUG_FS
+#if 0
 #include <mali_kbase_debug_mem_view.h>
 #include <mali_kbase_mem_pool_debugfs.h>
 
