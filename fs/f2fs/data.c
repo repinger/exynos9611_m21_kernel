@@ -591,7 +591,7 @@ int f2fs_submit_page_bio(struct f2fs_io_info *fio)
 	if (f2fs_inline_encrypted(inode, fio))
 		fscrypt_set_bio_cryptd_dun(inode, bio, FSCRYPT_PG_DUN(inode, fio->page));
 
-	__f2fs_submit_read_bio(fio->sbi, bio, fio->type);
+	__submit_bio(fio->sbi, bio, fio->type);
 	return 0;
 }
 
@@ -739,7 +739,7 @@ static int f2fs_submit_page_read(struct inode *inode, struct page *page,
 	if (f2fs_inline_encrypted(inode, NULL))
 		fscrypt_set_bio_cryptd_dun(inode, bio, FSCRYPT_PG_DUN(inode, page));
 
-	__f2fs_submit_read_bio(F2FS_I_SB(inode), bio, DATA);
+	__submit_bio(F2FS_I_SB(inode), bio, DATA);
 	return 0;
 }
 
