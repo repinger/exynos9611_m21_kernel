@@ -13,6 +13,7 @@
 #endif
 
 static bool screen_on = true;
+unsigned int set_mode;
 static unsigned int mode = CONFIG_KPROFILES_MODE;
 module_param(mode, uint, 0664);
 
@@ -35,7 +36,7 @@ static int msm_drm_notifier_callback(struct notifier_block *self,
 		if (!screen_on)
 			break;
 		screen_on = false;
-		set_mode = mode
+		set_mode = mode;
 		mode = 1;
 		break;
 	case MSM_DRM_BLANK_UNBLANK:
@@ -58,7 +59,7 @@ static int msm_drm_notifier_callback(struct notifier_block *self,
 		if (!screen_on)
 			break;
 		screen_on = false;
-		set_mode = mode
+		set_mode = mode;
 		mode = 1;
 		break;
 	case FB_BLANK_UNBLANK:
