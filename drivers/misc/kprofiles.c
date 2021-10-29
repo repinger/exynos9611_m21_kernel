@@ -111,4 +111,4 @@ late_initcall(kprofiles_notifier_init);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Dakkshesh");
 MODULE_DESCRIPTION("KernelSpace Profiles");
-MODULE_VERSION("0.0.1");
+MODULE_VERSION("2.0.0");
