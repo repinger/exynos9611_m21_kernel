@@ -9,37 +9,41 @@
 #include <linux/fb.h>
 
 static bool screen_on = true;
-unsigned int set_mode;
+static unsigned int set_mode;
+static bool auto_kprofiles = true;
 static unsigned int mode = CONFIG_KPROFILES_MODE;
+
 module_param(mode, uint, 0664);
+module_param(auto_kprofiles, bool, 0664);
 
 static int fb_notifier_callback(struct notifier_block *self,
 				unsigned long event, void *data)
 {
-	struct fb_event *evdata = data;
-	int *blank;
+	if (auto_kprofiles) {
+		struct fb_event *evdata = data;
+		int *blank;
 
-	if (event != FB_EVENT_BLANK)
-		goto out;
+		if (event != FB_EVENT_BLANK)
+			return NOTIFY_OK;
 
-	blank = evdata->data;
-	switch (*blank) {
-		case FB_BLANK_POWERDOWN:
-			if (!screen_on)
+		blank = evdata->data;
+		switch (*blank) {
+			case FB_BLANK_POWERDOWN:
+				if (!screen_on)
+					break;
+				screen_on = false;
+				set_mode = mode;
+				mode = 1;
 				break;
-			screen_on = false;
-			set_mode = mode;
-			mode = 1;
-			break;
-		case FB_BLANK_UNBLANK:
-			if (screen_on)
-				break;
-			screen_on = true;
-			mode = set_mode;
+			case FB_BLANK_UNBLANK:
+				if (screen_on)
+					break;
+				screen_on = true;
+				mode = set_mode;
+		}
 	}
 
-out:
-	return NOTIFY_OK;
+	return 0;
 }
 
 inline unsigned int active_mode(void)
