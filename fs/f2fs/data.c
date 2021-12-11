@@ -24,7 +24,6 @@
 #include "segment.h"
 #include "trace.h"
 #include <trace/events/f2fs.h>
-#include <trace/events/android_fs.h>
 
 #define NUM_PREALLOC_POST_READ_CTXS	128
 
@@ -228,14 +227,14 @@ static void f2fs_read_end_io(struct bio *bio)
 		bio_post_read_processing(ctx);
 		return;
 	}
-
+#if 0
 	if (first_page != NULL &&
 		__read_io_type(first_page) == F2FS_RD_DATA) {
 		trace_android_fs_dataread_end(first_page->mapping->host,
 						page_offset(first_page),
 						bio->bi_iter.bi_size);
 	}
-
+#endif
 	__read_end_io(bio);
 }
 
@@ -406,39 +405,11 @@ submit_io:
 	submit_bio(bio);
 }
 
-#ifdef DEBUG
-static void __f2fs_submit_read_bio(struct f2fs_sb_info *sbi,
-				struct bio *bio, enum page_type type)
-{
-	if (trace_android_fs_dataread_start_enabled() && (type == DATA)) {
-		struct page *first_page = bio->bi_io_vec[0].bv_page;
-
-		if (first_page != NULL &&
-			__read_io_type(first_page) == F2FS_RD_DATA) {
-			char *path, pathbuf[MAX_TRACE_PATHBUF_LEN];
-
-			path = android_fstrace_get_pathname(pathbuf,
-						MAX_TRACE_PATHBUF_LEN,
-						first_page->mapping->host);
-
-			trace_android_fs_dataread_start(
-				first_page->mapping->host,
-				page_offset(first_page),
-				bio->bi_iter.bi_size,
-				current->pid,
-				path,
-				current->comm);
-		}
-	}
-	__submit_bio(sbi, bio, type);
-}
-#else
 static void __f2fs_submit_read_bio(struct f2fs_sb_info *sbi,
 				struct bio *bio, enum page_type type)
 {
 	__submit_bio(sbi, bio, type);
 }
-#endif
 
 static void __submit_merged_bio(struct f2fs_bio_info *io)
 {
@@ -2591,6 +2562,7 @@ static int f2fs_write_begin(struct file *file, struct address_space *mapping,
 	block_t blkaddr = NULL_ADDR;
 	int err = 0;
 
+#if 0
 	if (trace_android_fs_datawrite_start_enabled()) {
 		char *path, pathbuf[MAX_TRACE_PATHBUF_LEN];
 
@@ -2602,6 +2574,7 @@ static int f2fs_write_begin(struct file *file, struct address_space *mapping,
 						 current->comm);
 	}
 	trace_f2fs_write_begin(inode, pos, len, flags);
+#endif
 
 	err = f2fs_is_checkpoint_ready(sbi);
 	if (err)
@@ -2700,8 +2673,9 @@ static int f2fs_write_end(struct file *file,
 			struct page *page, void *fsdata)
 {
 	struct inode *inode = page->mapping->host;
-
+#if 0
 	trace_android_fs_datawrite_end(inode, pos, len);
+#endif
 	trace_f2fs_write_end(inode, pos, len, copied);
 
 	/*
@@ -2816,7 +2790,7 @@ static ssize_t f2fs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
 	do_opu = allow_outplace_dio(inode, iocb, iter);
 
 	trace_f2fs_direct_IO_enter(inode, offset, count, rw);
-
+#if 0
 	if (trace_android_fs_dataread_start_enabled() &&
 	    (rw == READ)) {
 		char *path, pathbuf[MAX_TRACE_PATHBUF_LEN];
@@ -2839,6 +2813,7 @@ static ssize_t f2fs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
 						 current->pid, path,
 						 current->comm);
 	}
+#endif
 	if (rw == WRITE && whint_mode == WHINT_MODE_OFF)
 		iocb->ki_hint = WRITE_LIFE_NOT_SET;
 
@@ -2883,13 +2858,14 @@ static ssize_t f2fs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
 		}
 	}
 out:
+#if 0
 	if (trace_android_fs_dataread_start_enabled() &&
 	    (rw == READ))
 		trace_android_fs_dataread_end(inode, offset, count);
 	if (trace_android_fs_datawrite_start_enabled() &&
 	    (rw == WRITE))
 		trace_android_fs_datawrite_end(inode, offset, count);
-
+#endif
 	trace_f2fs_direct_IO_exit(inode, offset, count, rw, err);
 
 	return err;
