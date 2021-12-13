@@ -8,10 +8,8 @@
 #include <linux/kprofiles.h>
 #include <linux/fb.h>
 
-static bool screen_on = true;
-static unsigned int set_mode;
-static bool auto_kprofiles = true;
 static unsigned int mode = CONFIG_KPROFILES_MODE;
+static bool auto_kprofiles = false;
 
 module_param(mode, uint, 0664);
 module_param(auto_kprofiles, bool, 0664);
@@ -19,6 +17,9 @@ module_param(auto_kprofiles, bool, 0664);
 static int fb_notifier_callback(struct notifier_block *self,
 				unsigned long event, void *data)
 {
+	static bool screen_on = true;
+	static unsigned int set_mode;
+
 	if (auto_kprofiles) {
 		struct fb_event *evdata = data;
 		int *blank;
@@ -64,8 +65,8 @@ static int  __init kprofiles_notifier_init(void)
 	fb_register_client(&fb_notifier_block);
 	return 0;
 }
-
 late_initcall(kprofiles_notifier_init);
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Dakkshesh");
 MODULE_DESCRIPTION("KernelSpace Profiles");
