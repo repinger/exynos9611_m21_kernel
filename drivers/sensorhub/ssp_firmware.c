@@ -40,7 +40,9 @@ enum fw_type {
 #define SPU_FW_FILE "/spu/sensorhub/shub_spu.bin"
 
 #define FW_VER_LEN 8
+#ifdef CONFIG_SPU_VERIFY
 extern long spu_firmware_signature_verify(const char *fw_name, const u8 *fw_data, const long fw_size);
+#endif
 
 static int request_spu_firmware(struct ssp_data *data, u8 **fw_buf)
 {
@@ -104,7 +106,7 @@ static int request_spu_firmware(struct ssp_data *data, u8 **fw_buf)
 		kfree(file_buf);
 		return 0;
 	}
-
+#ifdef CONFIG_SPU_VERIFY
 	// check signing
 	fw_size = spu_firmware_signature_verify("SENSORHUB", file_buf, file_size);
 	if (fw_size < 0) {
@@ -140,7 +142,7 @@ static int request_spu_firmware(struct ssp_data *data, u8 **fw_buf)
 			fw_size = 0;
 	}
 	kfree(file_buf);
-
+#endif
 	return (int)fw_size;
 }
 
