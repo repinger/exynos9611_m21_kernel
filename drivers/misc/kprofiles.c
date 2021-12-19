@@ -51,7 +51,7 @@ inline unsigned int active_mode(void)
 	if (mode < 4)
 		return mode;
 
-	pr_info ("Invalid value passed, falling back to level 0\n");
+	pr_err_once("KPROFILES: Invalid value passed; falling back to level 0.\n");
 	return 0;
 }
 
