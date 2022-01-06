@@ -1967,6 +1967,11 @@ config CC_WERROR
 	  to prevent easily-fixable problems from creeping into
 	  the codebase.
 
+config CC_HIDE_WARNINGS
+	bool "Hide all compilation warnings."
+	help
+	  Hide all compilation warnings; only show errors.
+
 source "samples/Kconfig"
 
 source "lib/Kconfig.kgdb"

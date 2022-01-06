@@ -371,7 +371,7 @@ else
 HOSTCC	= gcc
 HOSTCXX	= g++
 endif
-HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 \
+HOSTCFLAGS   := -Wall -w -Wmissing-prototypes -Wstrict-prototypes -O2 \
 		-fomit-frame-pointer -std=gnu89 $(HOST_LFS_CFLAGS)
 HOSTCXXFLAGS := -O2 $(HOST_LFS_CFLAGS)
 HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS)
@@ -682,6 +682,10 @@ endif # $(dot-config)
 
 ifdef CONFIG_CC_WERROR
   KBUILD_CFLAGS += -Werror
+endif
+
+ifdef CONFIG_CC_HIDE_WARNINGS
+  KBUILD_CFLAGS += -w
 endif
 
 # For the kernel to actually contain only the needed exported symbols,
