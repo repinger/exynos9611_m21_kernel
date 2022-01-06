@@ -746,6 +746,9 @@ KBUILD_CFLAGS += -Os
 endif
 
 ifeq ($(cc-name),clang)
+ifdef CONFIG_SOC_EXYNOS9610
+KBUILD_CFLAGS	+= -mcpu=cortex-a53
+endif
 ifdef CONFIG_LLVM_POLLY
 KBUILD_CFLAGS	+= -mllvm -polly \
 		   -mllvm -polly-run-dce \
