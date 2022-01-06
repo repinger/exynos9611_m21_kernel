@@ -100,28 +100,6 @@ if KPROFILES
 config KPROFILES_MODE
 	int "KPROFILES mode"
 	default 1
-	help
-	  Simply allows you to set KPROFILES mode in defconfig. Defaulted to 1.
-
-config AUTO_KPROFILES_MSM_DRM
-	depends on KPROFILES
-	depends on !KPROFILES_FB
-	depends on DRM_MSM
-	help
-	  Select this to enable automatic kprofiles switching via msm_drm_notifier API,
-	  When this option is enabled kprofiles will automaticallyswitch to 
-	  battery mode when device screen turns off and switch back to the previous
-	  used profiles when screen turns back on.
-
-config AUTO_KPROFILES_FB
-	depends on KPROFILES
-	depends on !KPROFILES_MSM_DRM
-	depends on FB
-	help
-	  Select this to enable automatic kprofiles switching via fb_notifier API,
-	  When this option is enabled kprofiles will automatically switch to 
-	  battery mode when device screen turns off and switch back to the previous
-	  used profiles when screen turns back on.
 
 endif
 
