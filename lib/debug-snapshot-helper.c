@@ -456,7 +456,8 @@ void __init dbg_snapshot_init_helper(void)
 	register_reboot_notifier(&nb_reboot_block);
 	atomic_notifier_chain_register(&panic_notifier_list, &nb_panic_block);
 	dss_soc_ops = &dss_soc_dummy_ops;
-
+#if 0
 	/* hardlockup_detector function should be called before secondary booting */
 	dbg_snapshot_soc_helper_init();
+#endif
 }
