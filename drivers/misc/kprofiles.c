@@ -47,7 +47,7 @@ static int fb_notifier_callback(struct notifier_block *self,
 	return 0;
 }
 
-inline unsigned int active_mode(void)
+unsigned int active_mode(void)
 {
 	if (mode < 4)
 		return mode;
