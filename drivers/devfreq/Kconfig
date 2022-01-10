@@ -164,6 +164,12 @@ config DEVFREQ_BOOST
 
 if DEVFREQ_BOOST
 
+config DEVFREQ_INPUT_BOOST
+	bool "Input boost"
+	default y
+	help
+	  Boosts enumerated devfreq devices upon input.
+
 config DEVFREQ_INPUT_BOOST_DURATION_MS
 	int "Input boost duration"
 	default "100"

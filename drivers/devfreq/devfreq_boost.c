@@ -7,7 +7,9 @@
 
 #include <linux/devfreq_boost.h>
 #include <linux/fb.h>
+#ifdef CONFIG_DEVFREQ_INPUT_BOOST
 #include <linux/input.h>
+#endif
 #include <linux/kthread.h>
 #include <linux/slab.h>
 #include <linux/moduleparam.h>
@@ -228,7 +230,7 @@ static int fb_notifier_cb(struct notifier_block *nb, unsigned long action,
 
 	return NOTIFY_OK;
 }
-
+#ifdef CONFIG_DEVFREQ_INPUT_BOOST
 static void devfreq_boost_input_event(struct input_handle *handle,
 				      unsigned int type, unsigned int code,
 				      int value)
@@ -312,7 +314,7 @@ static struct input_handler devfreq_boost_input_handler = {
 	.name		= "devfreq_boost_handler",
 	.id_table	= devfreq_boost_ids
 };
-
+#endif
 static int __init devfreq_boost_init(void)
 {
 	struct df_boost_drv *d = &df_boost_drv_g;
@@ -330,26 +332,31 @@ static int __init devfreq_boost_init(void)
 			goto stop_kthreads;
 		}
 	}
-
+#ifdef CONFIG_DEVFREQ_INPUT_BOOST
 	devfreq_boost_input_handler.private = d;
 	ret = input_register_handler(&devfreq_boost_input_handler);
 	if (ret) {
 		pr_err("Failed to register input handler, err: %d\n", ret);
 		goto stop_kthreads;
 	}
-
+#endif
 	d->fb_notif.notifier_call = fb_notifier_cb;
 	d->fb_notif.priority = INT_MAX;
 	ret = fb_register_client(&d->fb_notif);
 	if (ret) {
 		pr_err("Failed to register fb notifier, err: %d\n", ret);
+#ifdef CONFIG_DEVFREQ_INPUT_BOOST
 		goto unregister_handler;
+#else
+		goto stop_kthreads;
+#endif
 	}
 
 	return 0;
-
+#ifdef CONFIG_DEVFREQ_INPUT_BOOST
 unregister_handler:
 	input_unregister_handler(&devfreq_boost_input_handler);
+#endif
 stop_kthreads:
 	while (i--)
 		kthread_stop(thread[i]);
