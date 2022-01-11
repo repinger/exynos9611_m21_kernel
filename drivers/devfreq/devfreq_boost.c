@@ -218,13 +218,16 @@ static int fb_notifier_cb(struct notifier_block *nb, unsigned long action,
 	for (i = 0; i < DEVFREQ_MAX; i++) {
 		struct boost_dev *b = d->devices + i;
 
-		if (*blank == FB_BLANK_UNBLANK) {
+		switch (*blank) {
+		case FB_BLANK_UNBLANK:
 			clear_bit(SCREEN_OFF, &b->state);
 			__devfreq_boost_kick_max(b,
 				devfreq_wake_boost_dur);
-		} else {
+			break;
+		case FB_BLANK_POWERDOWN:
 			set_bit(SCREEN_OFF, &b->state);
 			wake_up(&b->boost_waitq);
+			break;
 		}
 	}
 
