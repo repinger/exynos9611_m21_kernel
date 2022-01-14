@@ -821,6 +821,15 @@ bool kbase_has_exec_va_zone(struct kbase_context *kctx)
 	return has_exec_va_zone;
 }
 
+static inline void unpin_user_buf_page(struct page *page)
+{
+#if KERNEL_VERSION(5, 9, 0) > LINUX_VERSION_CODE
+	put_page(page);
+#else
+	unpin_user_page(page);
+#endif
+}
+
 /**
  * Determine if any allocations have been made on a context's region tracker
  * @kctx: KBase context
@@ -4351,7 +4360,7 @@ KERNEL_VERSION(4, 5, 0) > LINUX_VERSION_CODE
 
 	if (pinned_pages != alloc->imported.user_buf.nr_pages) {
 		for (i = 0; i < pinned_pages; i++)
-			put_page(pages[i]);
+			unpin_user_buf_page(pages[i]);
 		return -ENOMEM;
 	}
 
@@ -4427,7 +4436,7 @@ unwind:
 	}
 
 	while (++i < pinned_pages) {
-		put_page(pages[i]);
+		unpin_user_buf_page(pages[i]);
 		pages[i] = NULL;
 	}
 
@@ -4456,7 +4465,7 @@ static void kbase_jd_user_buf_unmap(struct kbase_context *kctx,
 				DMA_BIDIRECTIONAL);
 		if (writeable)
 			set_page_dirty_lock(pages[i]);
-		put_page(pages[i]);
+		unpin_user_buf_page(pages[i]);
 		pages[i] = NULL;
 
 		size -= local_size;
