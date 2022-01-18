@@ -262,6 +262,8 @@ typedef enum {
 #define OUT_POCKET 10
 #define IN_POCKET 11
 
+#define input_silence(mode, dev, fmt, ...)
+
 enum grip_write_mode {
 	G_NONE				= 0,
 	G_SET_EDGE_HANDLER		= 1,
