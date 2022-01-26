@@ -843,24 +843,38 @@ static int mms_alert_handler_proximity_state(struct mms_ts_info *info, u8 data)
 
 static int mms_alert_handler_mode_state(struct mms_ts_info *info, u8 data)
 {
-	if (data == ENTER_NOISE_MODE) {
-		input_info(true, &info->client->dev, "%s: NOISE ON[%d]\n", __func__, data);
+	switch (data) {
+	case ENTER_NOISE_MODE:
+		input_info(true, &info->client->dev, 
+			   "%s: NOISE ON[%d]\n", __func__, data);
 		info->noise_mode = 1;
-	} else if (data == EXIT_NOISE_MODE) {
-		input_info(true, &info->client->dev, "%s: NOISE OFF[%d]\n", __func__, data);
+		break;
+	case EXIT_NOISE_MODE:
+		input_info(true, &info->client->dev,
+			   "%s: NOISE OFF[%d]\n", __func__, data);
 		info->noise_mode = 0;
-	} else if (data == ENTER_WET_MODE) {
-		input_info(true, &info->client->dev, "%s: WET MODE ON[%d]\n", __func__, data);
+		break;
+	case ENTER_WET_MODE:
+		input_info(true, &info->client->dev,
+			   "%s: WET MODE ON[%d]\n", __func__, data);
 		info->wet_mode = 1;
-	} else if (data == EXIT_WET_MODE) {
-		input_info(true, &info->client->dev, "%s: WET MODE OFF[%d]\n", __func__, data);
+		break;
+	case EXIT_WET_MODE:
+		input_info(true, &info->client->dev,
+			   "%s: WET MODE OFF[%d]\n", __func__, data);
 		info->wet_mode = 0;
-	} else if (data == MODE_STATE_VSYNC_ON) {
-		input_info(true, &info->client->dev, "%s: VSYNC ON[%d]\n", __func__, data);
-	} else if (data == MODE_STATE_VSYNC_OFF) {
-		input_info(true, &info->client->dev, "%s: VSYNC OFF[%d]\n", __func__, data);
-	} else {
-		input_info(true, &info->client->dev, "%s: NOT DEFINED[%d]\n", __func__, data);
+		break;
+	case MODE_STATE_VSYNC_ON:
+		input_info(true, &info->client->dev,
+			   "%s: VSYNC ON[%d]\n", __func__, data);
+		break;
+	case MODE_STATE_VSYNC_OFF:
+		input_info(true, &info->client->dev,
+			   "%s: VSYNC OFF[%d]\n", __func__, data);
+		break;
+	default:
+		input_info(true, &info->client->dev,
+			   "%s: NOT DEFINED[%d]\n", __func__, data);
 		return 1;
 	}
 
@@ -975,32 +989,44 @@ static irqreturn_t mms_interrupt(int irq, void *dev_id)
 		//Alert event
 		alert_type = rbuf[0];
 
-		input_dbg(true, &client->dev, "%s - alert type [%d]\n", __func__, alert_type);
+		input_dbg(true, &client->dev, "%s - alert type [%d]\n",
+			  __func__, alert_type);
 
-		if (alert_type == MIP_ALERT_ESD) {
-			//ESD detection
+		switch (alert_type) {
+		case MIP_ALERT_ESD:
+			/* ESD detection */
 			if (mms_alert_handler_esd(info, rbuf))
 				goto ERROR;
-		} else if (alert_type == MIP_ALERT_SPONGE_GESTURE) {
+			break;
+		case MIP_ALERT_SPONGE_GESTURE:
 			if (mms_alert_handler_sponge(info, rbuf, size))
 				goto ERROR;
-		} else if (alert_type == MIP_ALERT_SRAM_FAILURE) {
-			//SRAM failure
+			break;
+		case MIP_ALERT_SRAM_FAILURE:
+			/* SRAM failure */
 			if (mms_alert_handler_sram(info, &rbuf[1]))
 				goto ERROR;
-		} else if (alert_type == MIP_ALERT_MODE_STATE) {
+			break;
+		case MIP_ALERT_MODE_STATE:
 			if (mms_alert_handler_mode_state(info, rbuf[1]))
 				goto ERROR;
-		} else if (alert_type == MIP_ALERT_POCKET_MODE_STATE) {
-			if (mms_alert_handler_pocket_mode_state(info, rbuf[1]))
+			break;
+		case MIP_ALERT_POCKET_MODE_STATE:
+			if (mms_alert_handler_pocket_mode_state(info,
+								rbuf[1]))
 				goto ERROR;
-		} else if (alert_type == MIP_ALERT_PROXIMITY_STATE) {
-			if (mms_alert_handler_proximity_state(info, rbuf[1]))
+			break;
+		case MIP_ALERT_PROXIMITY_STATE:
+			if (mms_alert_handler_proximity_state(info,
+							      rbuf[1]))
 				goto ERROR;
-		} else {
-			input_err(true, &client->dev, "%s [ERROR] Unknown alert type [%d]\n",
-				__func__, alert_type);
+			break;
+		default:
+			input_err(true, &client->dev,
+				  "%s [ERROR] Unknown alert type [%d]\n",
+				  __func__, alert_type);
 			goto ERROR;
+			break;
 		}
 	}
 
