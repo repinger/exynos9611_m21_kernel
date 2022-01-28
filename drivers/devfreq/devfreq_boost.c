@@ -10,6 +10,8 @@
 #include <linux/input.h>
 #include <linux/kthread.h>
 #include <linux/slab.h>
+#include <linux/moduleparam.h>
+#include <linux/kprofiles.h>
 #include <uapi/linux/sched/types.h>
 
 static unsigned short devfreq_wake_boost_dur __read_mostly =
@@ -66,6 +68,9 @@ static void __devfreq_boost_kick(struct boost_dev *b)
 	if (!READ_ONCE(b->df) || test_bit(SCREEN_OFF, &b->state))
 		return;
 
+	if (active_mode() == 1)
+		return;
+
 	set_bit(INPUT_BOOST, &b->state);
 	if (!mod_delayed_work(system_unbound_wq, &b->input_unboost,
 		msecs_to_jiffies(devfreq_boost_dur))) {
@@ -88,6 +93,9 @@ static void __devfreq_boost_kick_max(struct boost_dev *b,
 	unsigned long boost_jiffies, curr_expires, new_expires;
 
 	if (!READ_ONCE(b->df) || test_bit(SCREEN_OFF, &b->state))
+		return;
+
+	if (active_mode() == 1)
 		return;
 
 	boost_jiffies = msecs_to_jiffies(duration_ms);
