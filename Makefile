@@ -372,8 +372,8 @@ HOSTCC	= gcc
 HOSTCXX	= g++
 endif
 HOSTCFLAGS   := -Wall -w -Wmissing-prototypes -Wstrict-prototypes -O2 \
-		-fomit-frame-pointer -std=gnu89 $(HOST_LFS_CFLAGS)
-HOSTCXXFLAGS := -O2 $(HOST_LFS_CFLAGS)
+		-fomit-frame-pointer -pipe -std=gnu89 $(HOST_LFS_CFLAGS)
+HOSTCXXFLAGS := -O2 -pipe $(HOST_LFS_CFLAGS)
 HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS)
 HOST_LOADLIBES := $(HOST_LFS_LIBS)
 
@@ -773,6 +773,9 @@ else ifeq ($(cc-name),gcc)
 KBUILD_CFLAGS	+= --param=max-inline-insns-auto=1000
 endif
 endif
+
+# Tell compiler to use pipes instead of temporary files during compilation
+KBUILD_CFLAGS	+= $(call cc-option, -pipe)
 
 # Tell gcc to never replace conditional load with a non-conditional one
 KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
