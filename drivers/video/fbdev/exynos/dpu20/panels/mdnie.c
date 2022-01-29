@@ -956,17 +956,21 @@ static int fb_notifier_callback(struct notifier_block *self,
 	if (evdata->info->node)
 		return NOTIFY_DONE;
 
-	if (event == DECON_EVENT_DOZE) {
+	switch (event) {
+	case DECON_EVENT_DOZE:
 		mutex_lock(&mdnie->lock);
 		mdnie->lpm = 1;
 		mutex_unlock(&mdnie->lock);
-	} else if (event == FB_EVENT_BLANK) {
+		break;
+	case FB_EVENT_BLANK:
 		mutex_lock(&mdnie->lock);
 		mdnie->lpm = 0;
 		mutex_unlock(&mdnie->lock);
+		break;
 	}
 
-	if (fb_blank == FB_BLANK_UNBLANK) {
+	switch (fb_blank) {
+	case FB_BLANK_UNBLANK:
 		mutex_lock(&mdnie->lock);
 		mdnie->light_notification = LIGHT_NOTIFICATION_OFF;
 		mdnie->enable = 1;
@@ -975,12 +979,14 @@ static int fb_notifier_callback(struct notifier_block *self,
 		mdnie_update(mdnie);
 		if (mdnie->tune->trans_info->enable)
 			mdnie->disable_trans_dimming = 0;
-	} else if (fb_blank == FB_BLANK_POWERDOWN) {
+		break;
+	case FB_BLANK_POWERDOWN:
 		mutex_lock(&mdnie->lock);
 		mdnie->enable = 0;
 		if (mdnie->tune->trans_info->enable)
 			mdnie->disable_trans_dimming = 1;
 		mutex_unlock(&mdnie->lock);
+		break;
 	}
 
 	return NOTIFY_DONE;

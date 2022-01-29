@@ -939,20 +939,23 @@ int decon_update_pwr_state(struct decon_device *decon, u32 mode)
 	}
 
 	if (IS_DECON_OFF_STATE(decon)) {
-		if (mode == DISP_PWR_OFF) {
+		switch (mode) {
+		case DISP_PWR_OFF:
 			ret = decon_enable(decon);
 			if (ret < 0) {
 				decon_err("DECON:ERR:%s: failed to set mode(%d)\n",
 						__func__, DISP_PWR_NORMAL);
 				return -EIO;
 			}
-		} else if (mode == DISP_PWR_DOZE_SUSPEND) {
+			break;
+		case DISP_PWR_DOZE_SUSPEND:
 			ret = decon_doze(decon);
 			if (ret < 0) {
 				decon_err("DECON:ERR:%s: failed to set mode(%d)\n",
 						__func__, DISP_PWR_DOZE);
 				return -EIO;
 			}
+			break;
 		}
 	}
 
@@ -1550,17 +1553,23 @@ static int decon_set_win_buffer(struct decon_device *decon,
 	 * Also bpp macro is not matched with this. In case of YUV format, each plane's
 	 * bpp is needed.
 	 */
-	if (dpu_get_bpp(config->format) == 12) {
+	switch (dpu_get_bpp(config->format)) {
+	case 12:
 		byte_per_pixel = 1;
-	} else if (dpu_get_bpp(config->format) == 15) {
+		break;
+	case 15:
 		/* It should be 1.25 byte per pixel of Y plane.
-		 * So 1 byte is used instead of floating point.
+		 * So 1 byte is used instead of
+		 * floating point.
 		 */
 		byte_per_pixel = 1;
-	} else if (dpu_get_bpp(config->format) == 16) {
+		break;
+	case 16:
 		byte_per_pixel = 2;
-	} else {
+		break;
+	default:
 		byte_per_pixel = 4;
+		break;
 	}
 
 	config_size = config->src.f_w * config->src.f_h * byte_per_pixel;
@@ -2850,16 +2859,21 @@ static int decon_get_hdr_capa(struct decon_device *decon,
 	decon_dbg("%s +\n", __func__);
 	mutex_lock(&decon->lock);
 
-	if (decon->dt.out_type == DECON_OUT_DSI) {
+	switch (decon->dt.out_type) {
+	case DECON_OUT_DSI:
 		for (k = 0; k < decon->lcd_info->dt_lcd_hdr.hdr_num; k++)
 			hdr_capa->out_types[k] =
 				decon->lcd_info->dt_lcd_hdr.hdr_type[k];
-	} else if (decon->dt.out_type == DECON_OUT_DP) {
+		break;
+	case DECON_OUT_DP:
 #if defined(CONFIG_EXYNOS_DISPLAYPORT)
 		decon_displayport_get_hdr_capa(decon, hdr_capa);
 #endif
-	} else
+		break;
+	default:
 		memset(hdr_capa, 0, sizeof(struct decon_hdr_capabilities));
+		break;
+	}
 
 	mutex_unlock(&decon->lock);
 	decon_dbg("%s -\n", __func__);
@@ -2875,7 +2889,8 @@ static int decon_get_hdr_capa_info(struct decon_device *decon,
 	decon_dbg("%s +\n", __func__);
 	mutex_lock(&decon->lock);
 
-	if (decon->dt.out_type == DECON_OUT_DSI) {
+	switch (decon->dt.out_type) {
+	case DECON_OUT_DSI:
 		hdr_capa_info->out_num =
 			decon->lcd_info->dt_lcd_hdr.hdr_num;
 		hdr_capa_info->max_luminance =
@@ -2884,12 +2899,16 @@ static int decon_get_hdr_capa_info(struct decon_device *decon,
 			decon->lcd_info->dt_lcd_hdr.hdr_max_avg_luma;
 		hdr_capa_info->min_luminance =
 			decon->lcd_info->dt_lcd_hdr.hdr_min_luma;
-	} else if (decon->dt.out_type == DECON_OUT_DP) {
+		break;
+	case DECON_OUT_DP:
 #if defined(CONFIG_EXYNOS_DISPLAYPORT)
 		decon_displayport_get_hdr_capa_info(decon, hdr_capa_info);
 #endif
-	} else
+		break;
+	default:
 		memset(hdr_capa_info, 0, sizeof(struct decon_hdr_capabilities_info));
+		break;
+	}
 
 	mutex_unlock(&decon->lock);
 	decon_dbg("%s -\n", __func__);
@@ -3370,16 +3389,22 @@ static int decon_register_subdevs(struct decon_device *decon)
 
 	decon_dbg("Register V4L2 subdev nodes for DECON\n");
 
-	if (decon->dt.out_type == DECON_OUT_DSI)
+	switch (decon->dt.out_type) {
+	case DECON_OUT_DSI:
 		ret = decon_get_out_sd(decon);
-	else if (decon->dt.out_type == DECON_OUT_WB)
+		break;
+	case DECON_OUT_WB:
 		ret = decon_wb_get_out_sd(decon);
+		break;
 #if defined(CONFIG_EXYNOS_DISPLAYPORT)
-	else if (decon->dt.out_type == DECON_OUT_DP)
+	case DECON_OUT_DP:
 		ret = decon_displayport_get_out_sd(decon);
+		break;
 #endif
-	else
+	default:
 		ret = -ENODEV;
+		break;
+	}
 
 	return ret;
 }
@@ -3825,7 +3850,8 @@ static int decon_init_resources(struct decon_device *decon,
 		goto err;
 	}
 
-	if (decon->dt.out_type == DECON_OUT_DSI) {
+	switch (decon->dt.out_type) {
+	case DECON_OUT_DSI:
 		decon_get_clocks(decon);
 		ret = decon_register_irq(decon);
 		if (ret)
@@ -3836,20 +3862,24 @@ static int decon_init_resources(struct decon_device *decon,
 			if (ret)
 				goto err;
 		}
-	} else if (decon->dt.out_type == DECON_OUT_WB) {
+		break;
+	case DECON_OUT_WB:
 		decon_wb_get_clocks(decon);
 		ret =  decon_wb_register_irq(decon);
 		if (ret)
 			goto err;
-	} else if (decon->dt.out_type == DECON_OUT_DP) {
+		break;
+	case DECON_OUT_DP:
 #if defined(CONFIG_EXYNOS_DISPLAYPORT)
 		decon_displayport_get_clocks(decon);
 		ret =  decon_displayport_register_irq(decon);
 		if (ret)
 			goto err;
 #endif
-	} else {
+		break;
+	default:
 		decon_err("not supported output type(%d)\n", decon->dt.out_type);
+		break;
 	}
 
 	decon->res.ss_regs = dpu_get_sysreg_addr();

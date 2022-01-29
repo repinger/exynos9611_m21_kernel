@@ -92,10 +92,14 @@ static int dsi_write(u32 id, const unsigned char *wbuf, int size)
 {
 	int ret = 0;
 
-	if (size == 1)
+	switch (size) {
+	case 1:
 		ret = dsim_wr_data(id, MIPI_DSI_DCS_SHORT_WRITE, wbuf[0], 0);
-	else
+		break;
+	default:
 		ret = dsim_wr_data(id, MIPI_DSI_DCS_LONG_WRITE, (unsigned long)wbuf, size);
+		break;
+	}
 
 	mdelay(12);
 

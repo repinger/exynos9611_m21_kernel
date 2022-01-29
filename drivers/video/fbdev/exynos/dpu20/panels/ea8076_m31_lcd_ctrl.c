@@ -158,12 +158,17 @@ static int dsim_write_hl_data(struct lcd_info *lcd, const u8 *cmd, u32 cmdsize)
 		return ret;
 
 try_write:
-	if (cmdsize == 1)
+	switch (cmdsize) {
+	case 1:
 		ret = dsim_write_data(lcd->dsim, MIPI_DSI_DCS_SHORT_WRITE, cmd[0], 0);
-	else if (cmdsize == 2)
+		break;
+	case 2:
 		ret = dsim_write_data(lcd->dsim, MIPI_DSI_DCS_SHORT_WRITE_PARAM, cmd[0], cmd[1]);
-	else
+		break;
+	default:
 		ret = dsim_write_data(lcd->dsim, MIPI_DSI_DCS_LONG_WRITE, (unsigned long)cmd, cmdsize);
+		break;
+	}
 
 	if (ret < 0) {
 		if (--retry)

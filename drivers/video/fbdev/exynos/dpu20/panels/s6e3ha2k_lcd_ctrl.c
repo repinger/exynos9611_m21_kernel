@@ -233,12 +233,17 @@ int dsim_write_by_panel(int id, const u8 *cmd, u32 cmdSize)
 {
 	int ret;
 
-	if (cmdSize == 1)
+	switch (cmdSize) {
+	case 1:
 		ret = dsim_wr_data(id, MIPI_DSI_DCS_SHORT_WRITE, cmd[0], 0);
-	else if (cmdSize == 2)
+		break;
+	case 2:
 		ret = dsim_wr_data(id, MIPI_DSI_DCS_SHORT_WRITE_PARAM, cmd[0], cmd[1]);
-	else
+		break;
+	default:
 		ret = dsim_wr_data(id, MIPI_DSI_DCS_LONG_WRITE, (unsigned long)cmd, cmdSize);
+		break;
+	}
 
 	return ret;
 }

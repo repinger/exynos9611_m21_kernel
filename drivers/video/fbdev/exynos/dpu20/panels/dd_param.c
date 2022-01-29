@@ -81,10 +81,14 @@ static ssize_t param_write(struct file *f, const char __user *user_buf,
 		dbg_info("input is 0(zero). reset param to default\n");
 
 		list_for_each_entry(param, &params_list->node, node) {
-			if (param->ptr_type == U8_MAX)
+			switch (param->ptr_type) {
+			case U8_MAX:
 				memcpy(param->ptr_u08, param->org_u08, param->ptr_size * sizeof(u8));
-			else if (param->ptr_type == U32_MAX)
+				break;
+			case U32_MAX:
 				memcpy(param->ptr_u32, param->org_u32, param->ptr_size * sizeof(u32));
+				break;
+			}
 		}
 
 		goto exit;
@@ -176,7 +180,8 @@ static ssize_t param_write(struct file *f, const char __user *user_buf,
 		goto exit;
 	}
 
-	if (param->ptr_type == U8_MAX) {
+	switch (param->ptr_type) {
+	case U8_MAX:
 		for (offset_w = 0; offset_w < end; offset_w++) {
 			param_old = param->ptr_u08[input_w + offset_w];
 			param_new = tbuf[2 + offset_w];
@@ -185,7 +190,8 @@ static ssize_t param_write(struct file *f, const char __user *user_buf,
 			dbg_info("[%2d] 0x%02x -> 0x%02x%s\n", input_w + offset_w, param_old, param_new, (param_old != param_new) ? " (!)" : "");
 			param->ptr_u08[input_w + offset_w] = param_new;
 		}
-	} else if (param->ptr_type == U32_MAX) {
+		break;
+	case U32_MAX:
 		for (offset_w = 0; offset_w < end; offset_w++) {
 			param_old =  param->ptr_u32[input_w + offset_w];
 			param_new = tbuf[2 + offset_w];
@@ -194,6 +200,7 @@ static ssize_t param_write(struct file *f, const char __user *user_buf,
 			dbg_info("[%2d] %d -> %d%s\n", input_w + offset_w, param_old, param_new, (param_old != param_new) ? " (!)" : "");
 			param->ptr_u32[input_w + offset_w] = param_new;
 		}
+		break;
 	}
 
 exit:

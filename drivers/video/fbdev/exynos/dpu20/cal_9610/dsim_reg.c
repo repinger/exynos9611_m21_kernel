@@ -919,7 +919,8 @@ static void dsim_reg_set_size_of_slice(u32 id, struct decon_lcd *lcd_info)
 	u32 val_01 = 0, mask_01 = 0;
 	u32 val_23 = 0, mask_23 = 0;
 
-	if (lcd_info->dsc_slice_num == 4) {
+	switch (lcd_info->dsc_slice_num) {
+	case 4:
 		val_01 = DSIM_SLICE01_SIZE_OF_SLICE1(slice_w) |
 			DSIM_SLICE01_SIZE_OF_SLICE0(slice_w);
 		mask_01 = DSIM_SLICE01_SIZE_OF_SLICE1_MASK |
@@ -931,21 +932,25 @@ static void dsim_reg_set_size_of_slice(u32 id, struct decon_lcd *lcd_info)
 
 		dsim_write_mask(id, DSIM_SLICE01, val_01, mask_01);
 		dsim_write_mask(id, DSIM_SLICE23, val_23, mask_23);
-	} else if (lcd_info->dsc_slice_num == 2) {
+		break;
+	case 2:
 		val_01 = DSIM_SLICE01_SIZE_OF_SLICE1(slice_w) |
 			DSIM_SLICE01_SIZE_OF_SLICE0(slice_w);
 		mask_01 = DSIM_SLICE01_SIZE_OF_SLICE1_MASK |
 			DSIM_SLICE01_SIZE_OF_SLICE0_MASK;
 
 		dsim_write_mask(id, DSIM_SLICE01, val_01, mask_01);
-	} else if (lcd_info->dsc_slice_num == 1) {
+		break;
+	case 1:
 		val_01 = DSIM_SLICE01_SIZE_OF_SLICE0(slice_w);
 		mask_01 = DSIM_SLICE01_SIZE_OF_SLICE0_MASK;
 
 		dsim_write_mask(id, DSIM_SLICE01, val_01, mask_01);
-	} else {
+		break;
+	default:
 		dsim_err("not supported slice mode. dsc(%d), slice(%d)\n",
 				lcd_info->dsc_cnt, lcd_info->dsc_slice_num);
+		break;
 	}
 }
 

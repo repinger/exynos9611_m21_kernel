@@ -662,10 +662,14 @@ static ssize_t regdump_write(struct file *f, const char __user *user_buf,
 		goto exit;
 	}
 
-	if (ret == 2)
+	switch (ret) {
+	case 2:
 		writel(val, ioregs);
-	else if (ret == 1)
+		break;
+	case 1
 		val = readl(ioregs);
+		break;
+	}
 
 	dbg_info("reg: %8x, val: %8x%s\n", reg, val, (ret == 2) ? ", write_mode" : "");
 

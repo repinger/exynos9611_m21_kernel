@@ -292,22 +292,26 @@ Voltage_Swing_Retry:
 
 	displayport_dbg("lane_cr_done = %x\n", lane_cr_done);
 
-	if (lane_cnt == 0x04) {
+	switch (lane_cnt) {
+	case 0x04:
 		if (lane_cr_done == 0x0F) {
 			displayport_dbg("lane_cr_done\n");
 			goto EQ_Training_Start;
 		}
-	} else if (lane_cnt == 0x02) {
+		break;
+	case 0x02:
 		if (lane_cr_done == 0x03) {
 			displayport_dbg("lane_cr_done\n");
 			goto EQ_Training_Start;
 		}
-	} else if (lane_cnt == 0x01) {
+		break;
+	case 0x01:
 		if (lane_cr_done == 0x01) {
 			displayport_dbg("lane_cr_done\n");
 			goto EQ_Training_Start;
 		}
-	} else {
+		break;
+	default:
 		val[0] = 0x00;	/* SCRAMBLING_ENABLE, NORMAL_DATA */
 		displayport_reg_dpcd_write(DPCD_ADD_TRANING_PATTERN_SET, 1, val);
 		displayport_err("Full Link Training Fail : Link Rate %02x, lane Count %02x -",
@@ -354,13 +358,16 @@ Voltage_Swing_Retry:
 Check_Link_rate:
 	displayport_info("Check_Link_rate\n");
 
-	if (link_rate == LINK_RATE_5_4Gbps) {
+	switch (link_rate) {
+	case LINK_RATE_5_4Gbps:
 		link_rate = LINK_RATE_2_7Gbps;
 		goto Reduce_Link_Rate_Retry;
-	} else if (link_rate == LINK_RATE_2_7Gbps) {
+		break;
+	case LINK_RATE_2_7Gbps:
 		link_rate = LINK_RATE_1_62Gbps;
 		goto Reduce_Link_Rate_Retry;
-	} else if (link_rate == LINK_RATE_1_62Gbps) {
+		break;
+	case LINK_RATE_1_62Gbps:
 		val[0] = 0x00;	/* SCRAMBLING_ENABLE, NORMAL_DATA */
 		displayport_reg_dpcd_write(DPCD_ADD_TRANING_PATTERN_SET, 1, val);
 		displayport_err("Full Link Training Fail : Link_Rate Retry -");
@@ -427,15 +434,19 @@ EQ_Training_Retry:
 
 	interlane_align_done |= (val[2] & INTERLANE_ALIGN_DONE);
 
-	if (lane_cnt == 0x04) {
+	switch (lane_cnt) {
+	case 0x04:
 		if (lane_cr_done != 0x0F)
 			goto Check_Link_rate;
-	} else if (lane_cnt == 0x02) {
+		break;
+	case 0x02:
 		if (lane_cr_done != 0x03)
 			goto Check_Link_rate;
-	} else {
+		break;
+	default:
 		if (lane_cr_done != 0x01)
 			goto Check_Link_rate;
+		break;
 	}
 
 	displayport_info("lane_cr_done = %x\n", lane_cr_done);
@@ -445,7 +456,8 @@ EQ_Training_Retry:
 
 	max_link_rate = link_rate;
 
-	if (lane_cnt == 0x04) {
+	switch (lane_cnt) {
+	case 0x04:
 		if ((lane_channel_eq_done == 0x0F) && (lane_symbol_locked_done == 0x0F)
 				&& (interlane_align_done == 1)) {
 			displayport_reg_set_training_pattern(NORAMAL_DATA);
@@ -458,7 +470,7 @@ EQ_Training_Retry:
 					eq_training_retry_no, eq_val[0], eq_val[1], eq_val[2], eq_val[3]);
 			return ret;
 		}
-	} else if (lane_cnt == 0x02) {
+	case 0x02:
 		if ((lane_channel_eq_done == 0x03) && (lane_symbol_locked_done == 0x03)
 				&& (interlane_align_done == 1)) {
 			displayport_reg_set_training_pattern(NORAMAL_DATA);
@@ -471,7 +483,7 @@ EQ_Training_Retry:
 					eq_training_retry_no, eq_val[0], eq_val[1], eq_val[2], eq_val[3]);
 			return ret;
 		}
-	} else {
+	default:
 		if ((lane_channel_eq_done == 0x01) && (lane_symbol_locked_done == 0x01)
 				&& (interlane_align_done == 1)) {
 			displayport_reg_set_training_pattern(NORAMAL_DATA);
@@ -601,17 +613,18 @@ static int displayport_fast_link_training(void)
 
 	displayport_dbg("lane_cr_done = %x\n", lane_cr_done);
 
-	if (lane_cnt == 0x04) {
+	switch (lane_cnt) {
+	case 0x04:
 		if (lane_cr_done != 0x0F) {
 			displayport_err("Fast Link Training Fail : lane_cnt %d -", lane_cnt);
 			return -EINVAL;
 		}
-	} else if (lane_cnt == 0x02) {
+	case 0x02:
 		if (lane_cr_done != 0x03) {
 			displayport_err("Fast Link Training Fail : lane_cnt %d -", lane_cnt);
 			return -EINVAL;
 		}
-	} else {
+	default:
 		if (lane_cr_done != 0x01) {
 			displayport_err("Fast Link Training Fail : lane_cnt %d -", lane_cnt);
 			return -EINVAL;
@@ -646,17 +659,18 @@ static int displayport_fast_link_training(void)
 	displayport_reg_dpcd_read(DPCD_ADD_LANE_ALIGN_STATUS_UPDATE, 1, &val);
 	interlane_align_done |= (val & INTERLANE_ALIGN_DONE);
 
-	if (lane_cnt == 0x04) {
+	switch (lane_cnt) {
+	case 0x04:
 		if (lane_cr_done != 0x0F) {
 			displayport_err("Fast Link Training Fail : lane_cnt %d -", lane_cnt);
 			return -EINVAL;
 		}
-	} else if (lane_cnt == 0x02) {
+	case 0x02:
 		if (lane_cr_done != 0x03) {
 			displayport_err("Fast Link Training Fail : lane_cnt %d -", lane_cnt);
 			return -EINVAL;
 		}
-	} else {
+	default:
 		if (lane_cr_done != 0x01)
 			displayport_err("Fast Link Training Fail : lane_cnt %d -", lane_cnt);
 		return -EINVAL;
@@ -669,7 +683,8 @@ static int displayport_fast_link_training(void)
 
 	max_link_rate = link_rate;
 
-	if (lane_cnt == 0x04) {
+	switch (lane_cnt) {
+	case 0x04:
 		if ((lane_channel_eq_done == 0x0F) && (lane_symbol_locked_done == 0x0F)
 				&& (interlane_align_done == 1)) {
 			displayport_reg_set_training_pattern(NORAMAL_DATA);
@@ -680,7 +695,7 @@ static int displayport_fast_link_training(void)
 			displayport_info("Fast Link Training Finish -\n");
 			return ret;
 		}
-	} else if (lane_cnt == 0x02) {
+	case 0x02:
 		if ((lane_channel_eq_done == 0x03) && (lane_symbol_locked_done == 0x03)
 				&& (interlane_align_done == 1)) {
 			displayport_reg_set_training_pattern(NORAMAL_DATA);
@@ -691,7 +706,7 @@ static int displayport_fast_link_training(void)
 			displayport_info("Fast Link Training Finish -\n");
 			return ret;
 		}
-	} else {
+	default:
 		if ((lane_channel_eq_done == 0x01) && (lane_symbol_locked_done == 0x01)
 				&& (interlane_align_done == 1)) {
 			displayport_reg_set_training_pattern(NORAMAL_DATA);
@@ -2117,12 +2132,17 @@ static u64 displayport_get_max_pixelclock(void)
 	u64 pc;
 	u64 pc1lane;
 
-	if (max_link_rate == LINK_RATE_5_4Gbps) {
+	switch (max_link_rate) {
+	case LINK_RATE_5_4Gbps:
 		pc1lane = 180000000;
-	} else if (max_link_rate == LINK_RATE_2_7Gbps) {
+		break;
+	case LINK_RATE_2_7Gbps:
 		pc1lane = 90000000;
-	} else {/* LINK_RATE_1_62Gbps */
+		break;
+	default:
+		/* LINK_RATE_1_62Gbps */
 		pc1lane = 54000000;
+		break;
 	}
 
 	pc = max_lane_cnt * pc1lane;
