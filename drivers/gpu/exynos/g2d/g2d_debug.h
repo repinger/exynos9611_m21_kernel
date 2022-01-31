@@ -42,9 +42,28 @@ enum g2d_stamp_id {
 	G2D_STAMP_STATE_PENDING,
 	G2D_STAMP_STATE_NUM,
 };
-
+#ifdef CONFIG_DEBUG_KERNEL
 void g2d_init_debug(struct g2d_device *dev);
 void g2d_destroy_debug(struct g2d_device *dev);
 void g2d_stamp_task(struct g2d_task *task, u32 stampid, s32 val);
 void g2d_dump_info(struct g2d_device *g2d_dev, struct g2d_task *task);
+#else
+/* Do nothing */
+static inline
+void g2d_init_debug(struct g2d_device *dev)
+{
+}
+static inline
+void g2d_destroy_debug(struct g2d_device *dev)
+{
+}
+static inline
+void g2d_stamp_task(struct g2d_task *task, u32 stampid, s32 val)
+{
+}
+static inline
+void g2d_dump_info(struct g2d_device *g2d_dev, struct g2d_task *task)
+{
+}
+#endif
 #endif /* __EXYNOS_G2D_HELPER_H_ */
