@@ -21,6 +21,14 @@ enum {
 	MAX_BOOST
 };
 
+static unsigned short devfreq_wake_boost_dur __read_mostly =
+	CONFIG_DEVFREQ_WAKE_BOOST_DURATION_MS;
+static unsigned short devfreq_boost_dur __read_mostly =
+	CONFIG_DEVFREQ_INPUT_BOOST_DURATION_MS;
+
+module_param(devfreq_boost_dur, short, 0644);
+module_param(devfreq_wake_boost_dur, short, 0664);
+
 struct boost_dev {
 	struct devfreq *df;
 	struct delayed_work input_unboost;
@@ -63,7 +71,7 @@ static void __devfreq_boost_kick(struct boost_dev *b)
 
 	set_bit(INPUT_BOOST, &b->state);
 	if (!mod_delayed_work(system_unbound_wq, &b->input_unboost,
-		msecs_to_jiffies(CONFIG_DEVFREQ_INPUT_BOOST_DURATION_MS)))
+		msecs_to_jiffies(devfreq_boost_dur)))
 		wake_up(&b->boost_waitq);
 }
 
@@ -198,7 +206,7 @@ static int fb_notifier_cb(struct notifier_block *nb, unsigned long action,
 		if (*blank == FB_BLANK_UNBLANK) {
 			clear_bit(SCREEN_OFF, &b->state);
 			__devfreq_boost_kick_max(b,
-				CONFIG_DEVFREQ_WAKE_BOOST_DURATION_MS);
+				devfreq_wake_boost_dur);
 		} else {
 			set_bit(SCREEN_OFF, &b->state);
 			wake_up(&b->boost_waitq);
