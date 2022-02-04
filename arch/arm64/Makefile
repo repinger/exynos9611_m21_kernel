@@ -98,7 +98,7 @@ KBUILD_CFLAGS	+= -mno-implicit-float
 else
 KBUILD_CFLAGS	+= -mgeneral-regs-only
 ifeq ($(CONFIG_SOC_EXYNOS9610), y)
-KBUILD_CFLAGS  += -mcpu=cortex-a73.cortex-a53
+KBUILD_CFLAGS  += -mcpu=cortex-a73.cortex-a53+crypto
 endif
 endif
 KBUILD_CFLAGS	+= $(lseinstr) $(brokengasinst) $(vdso32)
