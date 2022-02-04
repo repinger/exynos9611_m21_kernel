@@ -274,7 +274,7 @@ cmd_gzip = (cat $(filter-out FORCE,$^) | $(KGZIP) -n -f -9 > $@) || \
 
 # DTC
 # ---------------------------------------------------------------------------
-DTC ?= $(objtree)/scripts/dtc/dtc
+DTC ?= dtc
 
 # Overlay support
 DTC_FLAGS += -@

@@ -1,6 +1,3 @@
-config DTC
-	bool
-
 menuconfig OF
 	bool "Device Tree and Open Firmware support"
 	help
@@ -26,7 +23,6 @@ config OF_UNITTEST
 config OF_ALL_DTBS
 	bool "Build all Device Tree Blobs"
 	depends on COMPILE_TEST
-	select DTC
 	help
 	  This option builds all possible Device Tree Blobs (DTBs) for the
 	  current architecture.
@@ -35,7 +31,6 @@ config OF_ALL_DTBS
 
 config OF_FLATTREE
 	bool
-	select DTC
 	select LIBFDT
 	select CRC32
 
