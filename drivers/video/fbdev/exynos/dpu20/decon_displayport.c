@@ -54,7 +54,7 @@ int decon_displayport_register_irq(struct decon_device *decon)
 	/* 1: FRAME START */
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 	ret = devm_request_irq(dev, res->start, decon_displayport_irq_handler,
-			0, pdev->name, decon);
+			IRQF_PERF_AFFINE, pdev->name, decon);
 	if (ret) {
 		decon_err("failed to install FRAME START irq\n");
 		return ret;
@@ -63,7 +63,7 @@ int decon_displayport_register_irq(struct decon_device *decon)
 	/* 2: FRAME DONE */
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
 	ret = devm_request_irq(dev, res->start, decon_displayport_irq_handler,
-			0, pdev->name, decon);
+			IRQF_PERF_AFFINE, pdev->name, decon);
 	if (ret) {
 		decon_err("failed to install FRAME DONE irq\n");
 		return ret;
@@ -72,7 +72,7 @@ int decon_displayport_register_irq(struct decon_device *decon)
 	/* 3: EXTRA: resource conflict, timeout and error irq */
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 2);
 	ret = devm_request_irq(dev, res->start, decon_displayport_irq_handler,
-			0, pdev->name, decon);
+			IRQF_PERF_AFFINE, pdev->name, decon);
 	if (ret) {
 		decon_err("failed to install EXTRA irq\n");
 		return ret;
@@ -157,7 +157,9 @@ int decon_displayport_create_vsync_thread(struct decon_device *decon)
 
 	sprintf(name, "decon%d-vsync", decon->id);
 
-	decon->vsync.thread = kthread_run(decon_displayport_vsync_thread, decon, name);
+	decon->vsync.thread = kthread_run_perf_critical(cpu_perf_mask,
+							decon_displayport_vsync_thread,
+							decon, name);
 	if (IS_ERR_OR_NULL(decon->vsync.thread)) {
 		decon_err("failed to run vsync thread\n");
 		decon->vsync.thread = NULL;
