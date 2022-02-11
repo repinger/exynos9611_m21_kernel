@@ -47,7 +47,7 @@ bool sec_bat_cisd_check(struct sec_battery_info *battery)
 	bool ret = false;
 
 	if (battery->factory_mode || battery->is_jig_on || battery->skip_cisd) {
-		dev_info(battery->dev, "%s: No need to check in factory mode\n",
+		dev_dbg_once(battery->dev, "%s: No need to check in factory mode\n",
 			__func__);
 		return ret;
 	}
@@ -61,7 +61,7 @@ bool sec_bat_cisd_check(struct sec_battery_info *battery)
 
 		if ((pcisd->ab_vbat_check_count >= pcisd->ab_vbat_max_count) &&
 			!(pcisd->state & CISD_STATE_OVER_VOLTAGE)) {
-			dev_info(battery->dev, "%s : [CISD] Battery Over Voltage Protction !! vbat(%d)mV\n",
+			dev_dbg_once(battery->dev, "%s : [CISD] Battery Over Voltage Protction !! vbat(%d)mV\n",
 				 __func__, battery->voltage_now);
 			vbat_val.intval = true;
 			psy_do_property("battery", set, POWER_SUPPLY_EXT_PROP_VBAT_OVP,
@@ -141,7 +141,7 @@ bool sec_bat_cisd_check(struct sec_battery_info *battery)
 		psy_do_property(battery->pdata->fuelgauge_name, get,
 			POWER_SUPPLY_PROP_ENERGY_NOW, capcurr_val);
 		if (capcurr_val.intval == -1) {
-			dev_info(battery->dev, "%s: [CISD] FG I2C fail. skip cisd check \n", __func__);
+			dev_dbg_once(battery->dev, "%s: [CISD] FG I2C fail. skip cisd check \n", __func__);
 			return ret;
 		}
 
@@ -295,7 +295,7 @@ static void add_pad_data(struct cisd* cisd, unsigned int pad_id, unsigned int pa
 	if (pad_data == NULL)
 		return;
 
-	pr_info("%s: id(0x%x), count(%d)\n", __func__, pad_id, pad_count);
+	pr_debug_once("%s: id(0x%x), count(%d)\n", __func__, pad_id, pad_count);
 	while (temp_data) {
 		if (temp_data->id > pad_id) {
 			temp_data->prev->next = pad_data;
@@ -308,7 +308,7 @@ static void add_pad_data(struct cisd* cisd, unsigned int pad_id, unsigned int pa
 		temp_data = temp_data->next;
 	}
 
-	pr_info("%s: failed to add pad_data(%d, %d)\n",
+	pr_debug_once("%s: failed to add pad_data(%d, %d)\n",
 		__func__, pad_id, pad_count);
 	kfree(pad_data);
 }
@@ -348,7 +348,7 @@ void count_cisd_pad_data(struct cisd* cisd, unsigned int pad_id)
 	struct pad_data* pad_data;
 
 	if (cisd->pad_array == NULL) {
-		pr_info("%s: can't update the connected count of pad_id(0x%x) because of null\n",
+		pr_debug_once("%s: can't update the connected count of pad_id(0x%x) because of null\n",
 			__func__, pad_id);
 		return;
 	}
@@ -396,19 +396,19 @@ void set_cisd_pad_data(struct sec_battery_info *battery, const char* buf)
 	struct pad_data* pad_data;
 	int i, x;
 
-	pr_info("%s: %s\n", __func__, buf);
+	pr_debug_once("%s: %s\n", __func__, buf);
 	if (sscanf(buf, "%10d %n", &pad_index, &x) <= 0) {
-		pr_info("%s: failed to read pad index\n", __func__);
+		pr_debug_once("%s: failed to read pad index\n", __func__);
 		return;
 	}
 	buf += (size_t)x;
-	pr_info("%s: stored pad_index(%d)\n", __func__, pad_index);
+	pr_debug_once("%s: stored pad_index(%d)\n", __func__, pad_index);
 
 	if (pcisd->pad_count > 0)
 		init_cisd_pad_data(pcisd);
 
 	if (pcisd->pad_array == NULL) {
-		pr_info("%s: can't set the pad data because of null\n", __func__);
+		pr_debug_once("%s: can't set the pad data because of null\n", __func__);
 		return;
 	}
 
@@ -435,10 +435,10 @@ void set_cisd_pad_data(struct sec_battery_info *battery, const char* buf)
 			return;
 		buf += (size_t)x;
 
-		pr_info("%s: add pad data(count: %d)\n", __func__, pad_total_count);
+		pr_debug_once("%s: add pad data(count: %d)\n", __func__, pad_total_count);
 		for (i = 0; i < pad_total_count; i++) {
 			if (sscanf(buf, "0x%02x:%10d %n", &pad_id, &pad_count, &x) != 2) {
-				pr_info("%s: failed to read pad data(0x%x, %d, %d)!!!re-init pad data\n",
+				pr_debug_once("%s: failed to read pad data(0x%x, %d, %d)!!!re-init pad data\n",
 					__func__, pad_id, pad_count, x);
 				init_cisd_pad_data(pcisd);
 				break;

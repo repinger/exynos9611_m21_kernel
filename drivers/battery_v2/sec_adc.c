@@ -125,7 +125,7 @@ static int adc_read_type(struct sec_battery_info *battery, int channel)
 	default :
 		break;
 	}
-	dev_dbg(battery->dev, "[%s]adc = %d\n", __func__, adc);
+	dev_dbg_once(battery->dev, "[%s]adc = %d\n", __func__, adc);
 	return adc;
 }
 
@@ -245,7 +245,7 @@ int sec_bat_get_charger_type_adc
 	else
 		result = i;
 
-	dev_dbg(battery->dev, "%s : result(%d), adc(%d)\n",
+	dev_dbg_once(battery->dev, "%s : result(%d), adc(%d)\n",
 		__func__, result, adc);
 
 	return result;
@@ -348,7 +348,7 @@ temp_by_adc_goto:
 	else
 		value->intval = temp;
 
-	dev_info(battery->dev,
+	dev_dbg_once(battery->dev,
 		"%s:[%d] Temp(%d), Temp-ADC(%d)\n",
 		__func__,channel, temp, temp_adc);
 
@@ -411,7 +411,7 @@ int sec_bat_get_inbat_vol_by_adc(struct sec_battery_info *battery)
 		inbat = 0;
 
 inbat_by_adc_goto:
-	dev_info(battery->dev,
+	dev_dbg_once(battery->dev,
 			"%s: inbat(%d), inbat-ADC(%d)\n",
 			__func__, inbat, inbat_adc);
 
@@ -436,7 +436,7 @@ bool sec_bat_check_vf_adc(struct sec_battery_info *battery)
 		(battery->check_adc_value >= battery->pdata->check_adc_min)) {
 		return true;
 	} else {
-		dev_info(battery->dev, "%s: VF_ADC(%d) is out of range(min:%d, max:%d)\n",
+		dev_dbg_once(battery->dev, "%s: VF_ADC(%d) is out of range(min:%d, max:%d)\n",
 			__func__, battery->check_adc_value, battery->pdata->check_adc_min, battery->pdata->check_adc_max);
 		return false;
 	}
