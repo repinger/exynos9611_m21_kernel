@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+OUT_FILES_DIR=$(pwd)/out/arch/arm64/boot
+FINAL_DIR=../feenal
+AIK_DIR=../imageyy
+
+function packKernel()
+{
+	local KERNEL_FILE=$(git rev-parse --verify --short=7 HEAD)-$(date +"%d-%m-%Y")
+	local BOOT_BLOCK=/dev/block/by-name/boot
+	local PUSH_PHONE_DIR=/sdcard/Download
+	local IMG_KERNEL=${PUSH_PHONE_DIR}/${KERNEL_FILE}.img
+
+	mv ${OUT_FILES_DIR}/Image ${AIK_DIR}
+
+	bash ${AIK_DIR}/cleanup.sh > /dev/null 2>&1
+	bash ${AIK_DIR}/unpackimg.sh > /dev/null 2>&1
+	mv -f ${AIK_DIR}/Image ${AIK_DIR}/split_img/stock.img-kernel
+	bash ${AIK_DIR}/repackimg.sh > /dev/null 2>&1
+	mv ${AIK_DIR}/image-new.img ${AIK_DIR}/${KERNEL_FILE}.img
+	mv ${AIK_DIR}/${KERNEL_FILE}.img ${FINAL_DIR}
+
+	printf "\n"
+
+	adb push ${FINAL_DIR}/${KERNEL_FILE}.img ${PUSH_PHONE_DIR} > /dev/null 2>&1
+	adb shell su -c dd if=${IMG_KERNEL} of=${BOOT_BLOCK} > /dev/null 2>&1
+	adb shell rm -f ${IMG_KERNEL} > /dev/null 2>&1
+	adb reboot
+
+	exit 0
+}
+
+function checkStuff()
+{
+	case $1 in
+		1)
+			printf "\n"
+
+			if [ -e ${OUT_FILES_DIR}/Image ]
+			then
+				printf " > Kernel has been successfully compiled.\n"
+				printf "\n"
+			else
+				printf " > Compilation failed; see out/log.txt for details.\n"
+				printf "\n"
+				exit 1
+			fi
+			;;
+		2)
+			if [ ! -d ${FINAL_DIR} ]
+			then
+				mkdir ${FINAL_DIR}
+			fi
+
+			if [ ! -d ${AIK_DIR} ]
+			then
+				printf "\n"
+				git clone --depth=1 https://github.com/repinger/AIK.git ${AIK_DIR}
+			fi
+
+			if [ ! -d /tc/gcc ]
+			then
+				local GCC_DIR=/tc
+
+				printf "\n"
+				printf "Cloning GCC toolchain now...\n"
+				printf "\n"
+
+				sudo mkdir -p ${GCC_DIR}
+				sudo chown $(whoami) -R ${GCC_DIR}
+
+				git clone --depth=1 https://github.com/repinger/aarch64-arm-gcc-elf.git ${GCC_DIR}/gcc
+				printf "\n"
+			fi
+			;;
+	esac
+}
+
+function main()
+{
+	local DEVICE_DEFCONFIG=m21_defconfig
+	local TC_DIR=/tc/gcc/bin
+
+	clear
+	checkStuff 2
+
+	if [ -e /usr/bin/ccache ]
+	then
+		ccache -Ccz > /dev/null 2>&1
+	fi
+
+	export PATH=${TC_DIR}:$PATH
+
+	make -C $(pwd) ${DEVICE_DEFCONFIG} -j$(nproc --all)
+	time make -C $(pwd) CROSS_COMPILE=aarch64-cruel-elf- \
+			    CROSS_COMPILE_ARM32=arm-eabi- \
+			    -j$(nproc --all) 2>&1 | tee out/log.txt
+
+	checkStuff 1
+	packKernel
+}
+main
