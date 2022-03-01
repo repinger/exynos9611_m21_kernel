@@ -13,6 +13,7 @@
 
 #include <linux/mutex.h>
 #include <linux/pm_qos.h>
+#include <linux/kprofiles.h>
 #include <linux/devfreq_boost.h>
 
 #include "tz_boost.h"
@@ -36,7 +37,12 @@ void tz_boost_enable(void)
 		tz_hotplug_update_nwd_cpu_mask(cpu_boost_mask);
 		pm_qos_add_request(&tz_boost_qos, TZ_BOOST_CPU_FREQ_MIN,
 				TZ_BOOST_CPU_FREQ_MAX_DEFAULT_VALUE);
-		devfreq_boost_kick(DEVFREQ_EXYNOS_MIF);
+		switch (active_mode()) {
+		case 2:
+		case 3:
+			devfreq_boost_kick_max(DEVFREQ_EXYNOS_MIF, 100);
+			break;
+		}
 	}
 
 	tz_boost_users++;
