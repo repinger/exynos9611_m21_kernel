@@ -31,12 +31,7 @@ do { \
 	} \
 } while (0)
 #else /* CONFIG_MALI_EXYNOS_TRACE */
-#define GPU_LOG(level, code, gpu_addr, info_val, msg, args...) \
-do { \
-	if (level >= gpu_get_debug_level()) { \
-		printk(KERN_INFO msg, ## args); \
-	} \
-} while (0)
+#define GPU_LOG(level, code, gpu_addr, info_val, msg, args...) do { } while (0)
 #endif /* CONFIG_MALI_EXYNOS_TRACE */
 
 #define GPU_DVFS_TABLE_LIST_SIZE(X)  ARRAY_SIZE(X)
