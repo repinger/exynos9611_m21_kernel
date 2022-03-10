@@ -2917,7 +2917,7 @@ static int decon_get_hdr_capa_info(struct decon_device *decon,
 
 }
 
-static int decon_ioctl(struct fb_info *info, unsigned int cmd,
+static int __decon_ioctl(struct fb_info *info, unsigned int cmd,
 			unsigned long arg)
 {
 	struct decon_win *win = info->par;
@@ -3184,6 +3184,22 @@ static int decon_ioctl(struct fb_info *info, unsigned int cmd,
 	}
 
 	decon_hiber_unblock(decon);
+	return ret;
+}
+
+static int decon_ioctl(struct fb_info *info, unsigned int cmd,
+			unsigned long arg)
+{
+	struct pm_qos_request req = {
+		.type = PM_QOS_REQ_AFFINE_CORES,
+		.cpus_affine = ATOMIC_INIT(BIT(raw_smp_processor_id()))
+	};
+	int ret;
+
+	pm_qos_add_request(&req, PM_QOS_CPU_DMA_LATENCY, 100);
+	ret = __decon_ioctl(info, cmd, arg);
+	pm_qos_remove_request(&req);
+
 	return ret;
 }
 
