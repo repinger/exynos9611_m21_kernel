@@ -1168,7 +1168,7 @@ static int dsim_acquire_fb_resource(struct dsim_device *dsim)
 	return ret;
 }
 
-static long dsim_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+static long __dsim_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 {
 	struct dsim_device *dsim = container_of(sd, struct dsim_device, sd);
 	int ret = 0;
@@ -1213,6 +1213,22 @@ static long dsim_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 		ret = -EINVAL;
 		break;
 	}
+
+	return ret;
+}
+
+static long dsim_ioctl(struct v4l2_subdev *sd, unsigned int cmd,
+			 void *arg)
+{
+	struct pm_qos_request req = {
+		.type = PM_QOS_REQ_AFFINE_CORES,
+		.cpus_affine = ATOMIC_INIT(BIT(raw_smp_processor_id()))
+	};
+	long ret;
+
+	pm_qos_add_request(&req, PM_QOS_CPU_DMA_LATENCY, 100);
+	ret = __dsim_ioctl(sd, cmd, arg);
+	pm_qos_remove_request(&req);
 
 	return ret;
 }
