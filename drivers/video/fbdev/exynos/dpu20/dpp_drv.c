@@ -509,7 +509,7 @@ err:
 	return ret;
 }
 
-static long dpp_subdev_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+static long __dpp_subdev_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 {
 	struct dpp_device *dpp = v4l2_get_subdevdata(sd);
 	bool reset = (bool)arg;
@@ -570,6 +570,21 @@ static long dpp_subdev_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg
 	default:
 		break;
 	}
+
+	return ret;
+}
+
+static long dpp_subdev_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+{
+	struct pm_qos_request req = {
+		.type = PM_QOS_REQ_AFFINE_CORES,
+		.cpus_affine = ATOMIC_INIT(BIT(raw_smp_processor_id()))
+	};
+	long ret;
+
+	pm_qos_add_request(&req, PM_QOS_CPU_DMA_LATENCY, 100);
+	ret = __dpp_subdev_ioctl(sd, cmd, arg);
+	pm_qos_remove_request(&req);
 
 	return ret;
 }
