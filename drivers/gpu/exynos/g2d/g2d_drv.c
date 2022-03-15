@@ -335,7 +335,7 @@ static int g2d_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-static long g2d_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+static long __g2d_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	struct g2d_context *ctx = filp->private_data;
 	struct g2d_device *g2d_dev = ctx->g2d_dev;
@@ -478,6 +478,21 @@ static long g2d_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	return ret;
 }
 
+static long g2d_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	struct pm_qos_request req = {
+		.type = PM_QOS_REQ_AFFINE_CORES,
+		.cpus_affine = ATOMIC_INIT(BIT(raw_smp_processor_id()))
+	};
+	long ret;
+
+	pm_qos_add_request(&req, PM_QOS_CPU_DMA_LATENCY, 100);
+	ret = __g2d_ioctl(filp, cmd, arg);
+	pm_qos_remove_request(&req);
+
+	return ret;
+}
+
 #ifdef CONFIG_COMPAT
 struct compat_g2d_commands {
 	__u32		target[G2DSFR_DST_FIELD_COUNT];
@@ -555,7 +570,7 @@ static int g2d_compat_get_layerdata(struct g2d_layer_data __user *img,
 	return ret ? -EFAULT : 0;
 }
 
-static long g2d_compat_ioctl(struct file *filp,
+static long __g2d_compat_ioctl(struct file *filp,
 			     unsigned int cmd, unsigned long arg)
 {
 	struct g2d_context *ctx = filp->private_data;
@@ -680,6 +695,22 @@ static long g2d_compat_ioctl(struct file *filp,
 					sizeof(__s32) * num_release_fences);
 	if (ret)
 		perrfndev(ctx->g2d_dev, "failed to write userdata");
+
+	return ret;
+}
+
+static long g2d_compat_ioctl(struct file *filp,
+			     unsigned int cmd, unsigned long arg)
+{
+	struct pm_qos_request req = {
+		.type = PM_QOS_REQ_AFFINE_CORES,
+		.cpus_affine = ATOMIC_INIT(BIT(raw_smp_processor_id()))
+	};
+	long ret;
+
+	pm_qos_add_request(&req, PM_QOS_CPU_DMA_LATENCY, 100);
+	ret = __g2d_compat_ioctl(filp, cmd, arg);
+	pm_qos_remove_request(&req);
 
 	return ret;
 }
