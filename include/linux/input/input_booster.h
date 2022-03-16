@@ -12,10 +12,7 @@
 #define USE_EHMP_BOOST
 #endif
 
-#define pr_booster(format, ...) { \
-	if (debug_flag) \
-		printk(format, ## __VA_ARGS__); \
-}
+#define pr_booster(format, ...) do { } while (0)
 
 #define MAX_MULTI_TOUCH_EVENTS		3
 #define MAX_EVENTS			(MAX_MULTI_TOUCH_EVENTS * 10)
