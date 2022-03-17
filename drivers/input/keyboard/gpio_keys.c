@@ -596,8 +596,6 @@ static void gpio_keys_gpio_report_event(struct gpio_button_data *bdata)
 	dbg_snapshot_check_crash_key(button->code, state);
 #endif
 
-	pr_info("%s %s: %d (%d)\n", SECLOG, __func__, button->code, state);
-
 	if (type == EV_ABS) {
 		if (state)
 			input_event(input, type, button->code, button->value);
