@@ -13,10 +13,6 @@
 #ifndef __MFC_DEBUG_H
 #define __MFC_DEBUG_H __FILE__
 
-#define DEBUG
-
-#ifdef DEBUG
-
 extern unsigned int debug_level;
 extern unsigned int debug_ts;
 extern unsigned int debug_mode_en;
@@ -31,18 +27,12 @@ extern unsigned int mmcache_disable;
 extern unsigned int perf_boost_mode;
 extern unsigned int reg_test;
 
-#define mfc_debug(level, fmt, args...)				\
-	do {							\
-		if (debug_level >= level)				\
-			printk(KERN_DEBUG "%s:%d: " fmt,	\
-				__func__, __LINE__, ##args);	\
-	} while (0)
-#else
 #define mfc_debug(fmt, args...)
-#endif
 
 #define mfc_debug_enter() mfc_debug(5, "enter\n")
 #define mfc_debug_leave() mfc_debug(5, "leave\n")
+
+#ifdef CONFIG_DEBUG_KERNEL
 
 #define mfc_err_dev(fmt, args...)			\
 	do {						\
@@ -69,6 +59,14 @@ extern unsigned int reg_test;
 			ctx->num,			\
 			__func__, __LINE__, ##args);	\
 	} while (0)
+#else
+
+#define mfc_err_dev(fmt, args...)
+#define mfc_err_ctx(fmt, args...)
+#define mfc_info_dev(fmt, args...)
+#define mfc_info_ctx(fmt, args...)
+
+#endif
 
 #define MFC_TRACE_STR_LEN		80
 #define MFC_TRACE_COUNT_MAX		1024
@@ -76,7 +74,6 @@ extern unsigned int reg_test;
 #define MFC_TRACE_LOG_STR_LEN		25
 #define MFC_TRACE_LOG_COUNT_MAX		256
 #define MFC_TRACE_LOG_COUNT_PRINT	20
-
 
 struct _mfc_trace {
 	unsigned long long time;
