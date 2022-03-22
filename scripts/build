@@ -3,31 +3,39 @@
 OUT_FILES_DIR=$(pwd)/out/arch/arm64/boot
 FINAL_DIR=../feenal
 AIK_DIR=../imageyy
+TC_DIR=/tc/clang
 
 function packKernel()
 {
 	local KERNEL_FILE=$(git rev-parse --verify --short=7 HEAD)-$(date +"%d-%m-%Y")
 	local BOOT_BLOCK=/dev/block/by-name/boot
+	local DTBO_BLOCK=/dev/block/by-name/dtbo
 	local PUSH_PHONE_DIR=/sdcard/Download
+	local IMG_DTBO=${PUSH_PHONE_DIR}/dtbo_exynos.img
 	local IMG_KERNEL=${PUSH_PHONE_DIR}/${KERNEL_FILE}.img
 
-	mv ${OUT_FILES_DIR}/Image ${AIK_DIR}
+	mv ${OUT_FILES_DIR}/Image ${OUT_FILES_DIR}/dtb_exynos.img ${AIK_DIR}
 
 	bash ${AIK_DIR}/cleanup.sh > /dev/null 2>&1
-	bash ${AIK_DIR}/unpackimg.sh > /dev/null 2>&1
+	bash ${AIK_DIR}/unpackimg.sh stock.img > /dev/null 2>&1
 	mv -f ${AIK_DIR}/Image ${AIK_DIR}/split_img/stock.img-kernel
+	mv -f ${AIK_DIR}/dtb_exynos.img ${AIK_DIR}/split_img/stock.img-dtb
 	bash ${AIK_DIR}/repackimg.sh > /dev/null 2>&1
 	mv ${AIK_DIR}/image-new.img ${AIK_DIR}/${KERNEL_FILE}.img
 	mv ${AIK_DIR}/${KERNEL_FILE}.img ${FINAL_DIR}
 
 	printf "\n"
 
+	adb push ${OUT_FILES_DIR}/dtbo_exynos.img ${PUSH_PHONE_DIR} > /dev/null 2>&1
+	adb shell su -c dd if=${IMG_DTBO} of=${DTBO_BLOCK} > /dev/null 2>&1
+	adb shell rm -f ${IMG_DTBO} > /dev/null 2>&1
+
 	adb push ${FINAL_DIR}/${KERNEL_FILE}.img ${PUSH_PHONE_DIR} > /dev/null 2>&1
 	adb shell su -c dd if=${IMG_KERNEL} of=${BOOT_BLOCK} > /dev/null 2>&1
 	adb shell rm -f ${IMG_KERNEL} > /dev/null 2>&1
-	adb reboot
 
-	exit 0
+	adb shell su -c rm -fr /data/dalvik-cache/* > /dev/null 2>&1
+	adb reboot
 }
 
 function checkStuff()
@@ -36,7 +44,7 @@ function checkStuff()
 		1)
 			printf "\n"
 
-			if [ -e ${OUT_FILES_DIR}/Image ]
+			if [[ -e ${OUT_FILES_DIR}/Image && ${OUT_FILES_DIR}/dtb_exynos.img && ${OUT_FILES_DIR}/dtbo_exynos.img ]]
 			then
 				printf " > Kernel has been successfully compiled.\n"
 				printf "\n"
@@ -58,18 +66,16 @@ function checkStuff()
 				git clone --depth=1 https://github.com/repinger/AIK.git ${AIK_DIR}
 			fi
 
-			if [ ! -d /tc/gcc ]
+			if [ ! -d ${TC_DIR} ]
 			then
-				local GCC_DIR=/tc
-
 				printf "\n"
-				printf "Cloning GCC toolchain now...\n"
+				printf "Getting Clang toolchain now...\n"
 				printf "\n"
 
-				sudo mkdir -p ${GCC_DIR}
-				sudo chown $(whoami) -R ${GCC_DIR}
+				sudo mkdir -p ${TC_DIR}
+				sudo chown -R $(whoami):$(whoami) ${TC_DIR}/../
 
-				git clone --depth=1 https://github.com/repinger/aarch64-arm-gcc-elf.git ${GCC_DIR}/gcc
+				git clone --depth=1 https://github.com/repinger/android_clang-12.git ${TC_DIR}
 				printf "\n"
 			fi
 			;;
@@ -79,7 +85,6 @@ function checkStuff()
 function main()
 {
 	local DEVICE_DEFCONFIG=m21_defconfig
-	local TC_DIR=/tc/gcc/bin
 
 	clear
 	checkStuff 2
@@ -89,14 +94,18 @@ function main()
 		ccache -Ccz > /dev/null 2>&1
 	fi
 
-	export PATH=${TC_DIR}:$PATH
+	export PATH=${TC_DIR}/bin:$PATH
+	export LD_LIBRARY_PATH=${TC_DIR}/lib64:$LD_LIBRARY_PATH
+	export LLVM=1
 
-	make -C $(pwd) ${DEVICE_DEFCONFIG} -j$(nproc --all)
-	time make -C $(pwd) CROSS_COMPILE=aarch64-cruel-elf- \
-			    CROSS_COMPILE_ARM32=arm-eabi- \
-			    -j$(nproc --all) 2>&1 | tee out/log.txt
+	make -C $(pwd) ${DEVICE_DEFCONFIG} -j$(nproc)
+	time make -C $(pwd) CROSS_COMPILE=aarch64-linux-gnu- \
+			    CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+			    -j$(nproc) 2>&1 | tee out/log.txt
 
 	checkStuff 1
 	packKernel
+
+	exit 0
 }
 main
