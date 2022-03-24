@@ -22,14 +22,14 @@ struct list_head *lb_cfs_tasks(struct rq *rq, int sse)
 	return sse ? &rq->sse_cfs_tasks : &rq->uss_cfs_tasks;
 }
 
-void lb_add_cfs_task(struct rq *rq, struct sched_entity *se)
+static void lb_add_cfs_task(struct rq *rq, struct sched_entity *se)
 {
 	struct list_head *tasks = lb_cfs_tasks(rq, task_of(se)->sse);
 
 	list_add(&se->group_node, tasks);
 }
 
-int lb_check_priority(int src_cpu, int dst_cpu)
+static int lb_check_priority(int src_cpu, int dst_cpu)
 {
 	if (capacity_orig_of_sse(dst_cpu, 0) > capacity_orig_of_sse(src_cpu, 0))
 		return 0;
@@ -62,8 +62,8 @@ check_cpu_capacity(struct rq *rq, struct sched_domain *sd)
 #define lb_sd_parent(sd) \
 	(sd->parent && sd->parent->groups != sd->parent->groups->next)
 
-int lb_need_active_balance(enum cpu_idle_type idle, struct sched_domain *sd,
-					int src_cpu, int dst_cpu)
+static int lb_need_active_balance(enum cpu_idle_type idle, struct sched_domain *sd,
+				  int src_cpu, int dst_cpu)
 {
 	struct task_struct *p = cpu_rq(src_cpu)->curr;
 	unsigned int src_imb_pct = lb_sd_parent(sd) ? sd->imbalance_pct : 1;
