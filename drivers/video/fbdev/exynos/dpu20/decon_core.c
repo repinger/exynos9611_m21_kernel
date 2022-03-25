@@ -39,7 +39,6 @@
 #include <linux/of_address.h>
 #include <linux/debugfs.h>
 #include <linux/pinctrl/consumer.h>
-#include <linux/kprofiles.h>
 #include <video/mipi_display.h>
 #include <media/v4l2-subdev.h>
 #if defined(CONFIG_CAL_IF)
@@ -2728,15 +2727,7 @@ static int decon_set_win_config(struct decon_device *decon,
 
 	num_of_window = decon_get_active_win_count(decon, win_data);
 	if (num_of_window) {
-		switch (active_mode()) {
-		case 2:
-			devfreq_boost_kick(DEVFREQ_EXYNOS_MIF);
-			break;
-		case 3:
-			cpu_input_boost_kick_max(100);
-			devfreq_boost_kick(DEVFREQ_EXYNOS_MIF);
-			break;
-		}
+		devfreq_boost_kick(DEVFREQ_EXYNOS_MIF);
 		win_data->retire_fence = decon_create_fence(decon, &sync_file);
 		if (win_data->retire_fence < 0)
 			goto err_prepare;
@@ -2762,15 +2753,7 @@ static int decon_set_win_config(struct decon_device *decon,
 			sizeof(struct decon_rect));
 
 	if (num_of_window) {
-		switch (active_mode()) {
-		case 2:
-			devfreq_boost_kick(DEVFREQ_EXYNOS_MIF);
-			break;
-		case 3:
-			cpu_input_boost_kick_max(100);
-			devfreq_boost_kick(DEVFREQ_EXYNOS_MIF);
-			break;
-		}
+		devfreq_boost_kick(DEVFREQ_EXYNOS_MIF);
 		decon_create_release_fences(decon, win_data, sync_file);
 #if !defined(CONFIG_SUPPORT_LEGACY_FENCE)
 		regs->retire_fence = dma_fence_get(sync_file->fence);
