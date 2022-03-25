@@ -110,7 +110,7 @@ static unsigned long get_lower_boundary(int cpu)
 		return 0;
 }
 
-static unsigned long get_coverage_ratio(int cpu)
+static inline unsigned long get_coverage_ratio(int cpu)
 {
 	struct ontime_cond *curr = get_current_cond(cpu);
 
@@ -120,7 +120,7 @@ static unsigned long get_coverage_ratio(int cpu)
 		return 0;
 }
 
-static bool is_faster_than(int src, int dst)
+static inline bool is_faster_than(int src, int dst)
 {
 	if (get_cpu_max_capacity(src) < get_cpu_max_capacity(dst))
 		return true;
